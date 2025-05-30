@@ -1,2 +1,2 @@
 # local-docker-dev
-For local tests with docker-compose
+For local run with docker-compose
