@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: authdb
-      POSTGRES_USER: postgres_user
-      POSTGRES_PASSWORD: user_password
+      POSTGRES_USER: yourdbuser
+      POSTGRES_PASSWORD: yourdbpassword
     ports:
       - "5433:5432"
     volumes:
@@ -23,12 +23,54 @@ services:
       - "8084:8084"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/authdb
-      SPRING_DATASOURCE_USERNAME: postgres_user
-      SPRING_DATASOURCE_PASSWORD: user_password
+      SPRING_DATASOURCE_USERNAME: yourdbusername
+      SPRING_DATASOURCE_PASSWORD: yourdbpassword
       SPRING_PROFILES_ACTIVE: dev
     build:
       context: ../auth-service
       dockerfile: Dockerfile
 
+  gateway-api:
+    image: gateway-api:latest
+    container_name: gateway-api
+    depends_on:
+      - auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+    build:
+      context: ../gateway-api
+      dockerfile: Dockerfile
+
+
+  product-db:
+    image: postgres:16
+    container_name: product-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: yourdusername
+      POSTGRES_PASSWORD: yourdbpassword
+    ports:
+      - "5434:5432"
+    volumes:
+      - product_pgdata:/var/lib/postgresql/data
+
+  products-api:
+    image: product-api:latest
+    container_name: products-api
+    depends_on:
+      - product-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-db:5432/productdb
+      SPRING_DATASOURCE_USERNAME: yourdusername
+      SPRING_DATASOURCE_PASSWORD: yourdbpassword
+    build:
+      context: ../products-api
+      dockerfile: Dockerfile
+
+
 volumes:
   auth_pgdata:
+  product_pgdata:
